@@ -61,4 +61,11 @@ describe('verifySlackSignature', () => {
       timestamp: 'abc', rawBody: BODY, nowSeconds: NOW,
     })).toBe(false)
   })
+
+  it('boş signing secret ile üretilmiş imzayı reddeder', () => {
+    expect(verifySlackSignature({
+      signingSecret: '', signature: sign(BODY, NOW, ''),
+      timestamp: String(NOW), rawBody: BODY, nowSeconds: NOW,
+    })).toBe(false)
+  })
 })

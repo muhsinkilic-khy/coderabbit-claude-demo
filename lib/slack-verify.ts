@@ -10,7 +10,7 @@ export function verifySlackSignature(args: {
   nowSeconds?: number
 }): boolean {
   const { signingSecret, signature, timestamp, rawBody } = args
-  if (!signature || !timestamp) return false
+  if (!signingSecret || !signature || !timestamp) return false
 
   const ts = Number(timestamp)
   if (!Number.isFinite(ts)) return false
