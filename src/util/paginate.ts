@@ -6,3 +6,5 @@ export function pageSlice<T>(items: T[], page: number, size: number): T[] {
   }
   return out
 }
+
+export const UNUSED_LIMIT = 100
