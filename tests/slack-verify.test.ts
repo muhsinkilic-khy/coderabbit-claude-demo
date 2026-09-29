@@ -62,6 +62,20 @@ describe('verifySlackSignature', () => {
     })).toBe(false)
   })
 
+  it('farklı uzunluktaki imzayı throw etmeden reddeder', () => {
+    expect(verifySlackSignature({
+      signingSecret: SECRET, signature: 'v0=deadbeef',
+      timestamp: String(NOW), rawBody: BODY, nowSeconds: NOW,
+    })).toBe(false)
+  })
+
+  it('imza varken eksik timestampi reddeder', () => {
+    expect(verifySlackSignature({
+      signingSecret: SECRET, signature: sign(BODY, NOW),
+      timestamp: undefined, rawBody: BODY, nowSeconds: NOW,
+    })).toBe(false)
+  })
+
   it('boş signing secret ile üretilmiş imzayı reddeder', () => {
     expect(verifySlackSignature({
       signingSecret: '', signature: sign(BODY, NOW, ''),
