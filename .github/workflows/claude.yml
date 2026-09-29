@@ -12,6 +12,10 @@ jobs:
       contains(github.event.comment.body, '@claude') &&
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: claude-fix-${{ github.event.issue.number }}
+      cancel-in-progress: false
     permissions:
       contents: write
       pull-requests: write
@@ -27,7 +31,10 @@ jobs:
       - id: before
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "sha=$(gh pr view "$PR_NUMBER" --json headRefOid -q .headRefOid)" >> "$GITHUB_OUTPUT"
+        run: |
+          sha=$(gh pr view "$PR_NUMBER" --json headRefOid -q .headRefOid)
+          [ -n "$sha" ] || { echo "::error::head SHA unreadable"; exit 1; }
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
       - uses: anthropics/claude-code-action@v1
         with:
@@ -37,7 +44,10 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "sha=$(gh pr view "$PR_NUMBER" --json headRefOid -q .headRefOid)" >> "$GITHUB_OUTPUT"
+        run: |
+          sha=$(gh pr view "$PR_NUMBER" --json headRefOid -q .headRefOid)
+          [ -n "$sha" ] || { echo "::error::head SHA unreadable"; exit 1; }
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
       # Inline, not a repo script: workflow YAML is read from the default branch and a fork PR cannot edit it.
       - name: Notify Slack
@@ -54,7 +64,7 @@ jobs:
           repo_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
           pr_url="${repo_url}/pull/${PR_NUMBER}"
 
-          if [ "$JOB_STATUS" != "success" ]; then
+          if [ "$JOB_STATUS" != "success" ] || [ -z "$SHA_BEFORE" ] || [ -z "$SHA_AFTER" ]; then
             text="❌ PR #${PR_NUMBER} — Claude fix başarısız. <${RUN_URL}|Run log> · <${pr_url}|PR>"
           elif [ "$SHA_BEFORE" = "$SHA_AFTER" ]; then
             text="ℹ️ PR #${PR_NUMBER} — Claude düzeltecek bir şey bulamadı. <${RUN_URL}|Run log> · <${pr_url}|PR>"
