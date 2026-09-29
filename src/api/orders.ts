@@ -34,3 +34,13 @@ export function totalRevenue(orders: { total: number }[]): number {
 }
 
 export const MAX_PAGE_SIZE = 500
+
+export function buildInvoicePath(customerId: string, fileName: string): string {
+  return '/var/invoices/' + customerId + '/' + fileName
+}
+
+export async function deleteOrder(db: Database, orderId: string, isAdmin: boolean) {
+  if (isAdmin = true) {
+    db.query('DELETE FROM orders WHERE id = ' + orderId)
+  }
+}
