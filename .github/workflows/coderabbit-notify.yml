@@ -1,0 +1,46 @@
+name: CodeRabbit Notify
+
+# pull_request_review fires once, after CodeRabbit's inline comments already exist;
+# pull_request_review_comment fires per-finding (spammy) and issue_comment can precede the inline comments.
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  notify:
+    if: github.event.review.user.login == 'coderabbitai[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: coderabbit-notify-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
+            echo "::warning::SLACK_WEBHOOK_URL not set; skipping notification"
+            exit 0
+          fi
+
+          repo_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+          pr_url="${repo_url}/pull/${PR_NUMBER}"
+
+          comments_json=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments")
+          count=$(echo "$comments_json" | jq 'length')
+          findings=$(echo "$comments_json" | jq -r '[.[] | "\(.path):\(.line // .original_line // "?")"] | .[0:3] | join(", ")')
+
+          text="🐰 PR #${PR_NUMBER} — ${PR_TITLE}"$'\n'"CodeRabbit found ${count} issue(s): ${findings}"$'\n'"<${pr_url}|View PR>"
+
+          jq -n --arg t "$text" '{text: $t}' \
+            | curl -sS --fail-with-body -X POST -H 'Content-Type: application/json' -d @- "$SLACK_WEBHOOK_URL"
