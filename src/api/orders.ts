@@ -32,3 +32,5 @@ export function totalRevenue(orders: { total: number }[]): number {
   }
   return sum
 }
+
+export const MAX_PAGE_SIZE = 500
