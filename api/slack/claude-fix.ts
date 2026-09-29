@@ -1,6 +1,6 @@
-import { buildCommentBody, postPrComment } from '../../lib/github-comment'
-import { isAllowed, parseCommand } from '../../lib/parse-command'
-import { verifySlackSignature } from '../../lib/slack-verify'
+import { buildCommentBody, postPrComment } from '../../lib/github-comment.js'
+import { isAllowed, parseCommand } from '../../lib/parse-command.js'
+import { verifySlackSignature } from '../../lib/slack-verify.js'
 
 function ephemeral(text: string): Response {
   return Response.json({ response_type: 'ephemeral', text })

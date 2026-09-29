@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import { verifySlackSignature } from '../lib/slack-verify'
+import { verifySlackSignature } from '../lib/slack-verify.js'
 
 const SECRET = 'test-signing-secret'
 const BODY = 'command=%2Fclaude-fix&text=42'

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildCommentBody } from '../lib/github-comment'
+import { buildCommentBody } from '../lib/github-comment.js'
 
 describe('buildCommentBody', () => {
   it('@claude ile başlar', () => {

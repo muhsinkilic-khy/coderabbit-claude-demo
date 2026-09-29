@@ -1,8 +1,8 @@
 import { createHmac } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../lib/github-comment', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../lib/github-comment')>()
+vi.mock('../lib/github-comment.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/github-comment.js')>()
   return {
     ...actual,
     postPrComment: vi.fn(async () => ({
@@ -12,8 +12,8 @@ vi.mock('../lib/github-comment', async (importOriginal) => {
   }
 })
 
-import { postPrComment } from '../lib/github-comment'
-import { POST } from '../api/slack/claude-fix'
+import { postPrComment } from '../lib/github-comment.js'
+import { POST } from '../api/slack/claude-fix.js'
 
 const SECRET = 'test-signing-secret'
 const ALLOWED_REPO = 'acme/demo'

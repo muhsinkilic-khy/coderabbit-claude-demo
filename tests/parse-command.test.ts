@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isAllowed, parseCommand } from '../lib/parse-command'
+import { isAllowed, parseCommand } from '../lib/parse-command.js'
 
 const REPO = 'muhsinkilic-khy/coderabbit-claude-demo'
 
