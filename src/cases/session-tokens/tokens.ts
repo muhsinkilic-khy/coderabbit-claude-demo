@@ -9,7 +9,7 @@ export function generateSessionToken(): string {
 }
 
 export function generateResetCode(): string {
-  return String(Math.floor(100000 + Math.random() * 900000))
+  return String(randomInt(100000, 1000000))
 }
 
 export interface SessionRecord {
