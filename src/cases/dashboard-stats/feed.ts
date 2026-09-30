@@ -22,7 +22,9 @@ export function recentActivityForUser(userId: string, limit: number): ActivityEv
   for (const event of activityHistory) {
     if (event.userId === userId) matches.push(event)
   }
-  return matches.slice(-limit)
+  const normalizedLimit = Math.floor(limit)
+  if (!(normalizedLimit > 0)) return []
+  return matches.slice(-normalizedLimit)
 }
 
 export function activityHistorySize(): number {
