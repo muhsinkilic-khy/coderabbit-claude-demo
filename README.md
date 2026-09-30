@@ -2,10 +2,9 @@
 
 CodeRabbit → Slack → Claude otomatik PR review ve fix hattının demo reposu.
 
-> **UYARI:** `src/` altındaki kod **kasten kusurludur**. SQL injection, sahte hardcoded
-> secret, yakalanmamış promise, güvensiz cast ve off-by-one hatası, CodeRabbit'in review
-> üretmesi için bilerek bırakılmıştır. Bu kodu hiçbir yerde kullanmayın.
-> `src/config.ts` içindeki anahtar sahtedir ve hiçbir servise karşılık gelmez.
+> **UYARI:** Şu dosyalar **kasten kusurludur** ve hattın review üretmesi için bilerek bırakılmıştır:
+> `src/config.ts`, `src/db/users.ts`, `src/jobs/sync.ts`, `src/api/handler.ts`, `src/util/paginate.ts`.
+> Bu dosyaları hiçbir yerde kullanmayın. `src/config.ts` içindeki anahtar sahtedir.
 >
-> **WARNING (EN):** The code under `src/` is intentionally vulnerable. It is a fixture for
-> testing an automated code-review pipeline, not working code — do not use it anywhere.
+> **WARNING (EN):** The files listed above are intentionally vulnerable fixtures for the review
+> pipeline — do not use them anywhere. The key in `src/config.ts` is fake.
