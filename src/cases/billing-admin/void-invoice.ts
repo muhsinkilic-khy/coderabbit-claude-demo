@@ -21,6 +21,7 @@ export async function voidInvoice(db: Database, session: AdminSession, request: 
     throw new Error('forbidden')
   }
   await db.query(
-    `UPDATE invoices SET status = 'void', void_reason = '${request.reason}' WHERE id = '${request.invoiceId}'`
+    `UPDATE invoices SET status = 'void', void_reason = $1 WHERE id = $2`,
+    [request.reason, request.invoiceId]
   )
 }
