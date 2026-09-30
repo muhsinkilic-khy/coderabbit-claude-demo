@@ -15,9 +15,12 @@ const TAX_RATE = 0.08
 
 export function calculateCartTotal(items: CartItem[], discountPercent: number): CartTotals {
   const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
-  const tax = subtotal * TAX_RATE
-  const discount = (subtotal + tax) * (discountPercent / 100)
-  const total = subtotal + tax - discount
+  if (discountPercent < 0 || discountPercent > 100) {
+    throw new RangeError('discountPercent must be between 0 and 100')
+  }
+  const discount = subtotal * (discountPercent / 100)
+  const tax = (subtotal - discount) * TAX_RATE
+  const total = subtotal - discount + tax
   return { subtotal, discount, tax, total }
 }
 
