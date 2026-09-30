@@ -28,8 +28,8 @@ export function markPaid(order: Order): Order {
 }
 
 export function markShipped(order: Order): Order {
-  if (order.status === 'cancelled' || order.status === 'refunded') {
-    throw new Error(`cannot ship a ${order.status} order`)
+  if (!canTransition(order.status, 'shipped')) {
+    throw new Error(`cannot mark shipped from ${order.status}`)
   }
   return { ...order, status: 'shipped' }
 }
@@ -59,5 +59,5 @@ export function isReturnWindowOpen(order: Order, now: Date = new Date()): boolea
   if (!order.deliveredAt) return false
   const deliveredAt = new Date(order.deliveredAt)
   const daysSince = (now.getTime() - deliveredAt.getTime()) / (1000 * 60 * 60 * 24)
-  return daysSince >= 30
+  return daysSince >= 0 && daysSince < 30
 }
