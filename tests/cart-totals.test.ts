@@ -1,5 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
-import * as cartTotals from '../src/cases/cart-totals/cart-totals.js'
+import { describe, expect, it } from 'vitest'
 import { appliesFreeShipping, calculateCartTotal, formatCurrency } from '../src/cases/cart-totals/cart-totals.js'
 
 const ITEMS = [
@@ -8,44 +7,48 @@ const ITEMS = [
 ]
 
 describe('calculateCartTotal', () => {
-  it('beklenen alan tiplerini döndürür', () => {
-    const totals = calculateCartTotal(ITEMS, 10)
-    expect(typeof totals.subtotal).toBe('number')
-    expect(typeof totals.discount).toBe('number')
-    expect(typeof totals.tax).toBe('number')
-    expect(typeof totals.total).toBe('number')
+  it('indirimi vergiden önce uygular (%10)', () => {
+    expect(calculateCartTotal(ITEMS, 10)).toEqual({ subtotal: 55, discount: 5.5, tax: 3.96, total: 53.46 })
   })
 
-  it('indirimli toplam, indirimsiz toplamı geçmez', () => {
-    const totals = calculateCartTotal(ITEMS, 10)
-    expect(totals.total).toBeLessThanOrEqual(totals.subtotal + totals.tax)
+  it('indirimsiz sepette yalnızca vergi ekler', () => {
+    expect(calculateCartTotal(ITEMS, 0)).toEqual({ subtotal: 55, discount: 0, tax: 4.4, total: 59.4 })
   })
 
-  it('aynı girdiyle tutarlı sonuç üretir', () => {
-    const first = calculateCartTotal(ITEMS, 15)
-    const second = calculateCartTotal(ITEMS, 15)
-    expect(second).toEqual(first)
+  it('%100 indirimde toplam sıfırdır', () => {
+    expect(calculateCartTotal(ITEMS, 100)).toEqual({ subtotal: 55, discount: 55, tax: 0, total: 0 })
   })
 
-  it('indirim tutarını iç formülle doğrular', () => {
-    const totals = calculateCartTotal(ITEMS, 10)
-    const subtotal = ITEMS.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
-    const tax = subtotal * 0.08
-    const expectedDiscount = (subtotal + tax) * (10 / 100)
-    expect(totals.discount).toBeCloseTo(expectedDiscount)
+  it('boş sepette sıfır döner', () => {
+    expect(calculateCartTotal([], 10)).toEqual({ subtotal: 0, discount: 0, tax: 0, total: 0 })
   })
 
-  it('calculateCartTotal fonksiyonu çağrılır', () => {
-    const spy = vi.spyOn(cartTotals, 'calculateCartTotal')
-    cartTotals.calculateCartTotal(ITEMS, 5)
-    expect(spy).toHaveBeenCalledTimes(1)
+  it('kuruş hassasiyetinde toplar', () => {
+    const totals = calculateCartTotal([{ sku: 'A', unitPrice: 0.1, quantity: 3 }], 0)
+    expect(totals.subtotal).toBe(0.3)
+  })
+
+  it('geçersiz indirim yüzdesini reddeder', () => {
+    expect(() => calculateCartTotal(ITEMS, 101)).toThrow(RangeError)
+    expect(() => calculateCartTotal(ITEMS, -1)).toThrow(RangeError)
   })
 })
 
 describe('appliesFreeShipping', () => {
-  it('eşik değerine göre boolean döner', () => {
-    const totals = calculateCartTotal(ITEMS, 0)
-    expect(typeof appliesFreeShipping(totals, 50)).toBe('boolean')
+  it('eşiğin altında false döner', () => {
+    expect(appliesFreeShipping(calculateCartTotal(ITEMS, 0), 56)).toBe(false)
+  })
+
+  it('eşikte true döner', () => {
+    expect(appliesFreeShipping(calculateCartTotal(ITEMS, 0), 55)).toBe(true)
+  })
+
+  it('eşiğin üstünde true döner', () => {
+    expect(appliesFreeShipping(calculateCartTotal(ITEMS, 0), 50)).toBe(true)
+  })
+
+  it('indirimli sepette ara toplama göre karar verir', () => {
+    expect(appliesFreeShipping(calculateCartTotal(ITEMS, 50), 55)).toBe(true)
   })
 })
 
