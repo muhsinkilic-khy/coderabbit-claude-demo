@@ -44,3 +44,7 @@ export async function deleteOrder(db: Database, orderId: string, isAdmin: boolea
     db.query('DELETE FROM orders WHERE id = ' + orderId)
   }
 }
+
+export function parseAmount(raw: string): number {
+  return parseInt(raw)
+}
