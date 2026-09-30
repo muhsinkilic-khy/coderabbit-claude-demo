@@ -1,3 +1,3 @@
 export interface Database {
-  query(sql: string): Promise<unknown[]>
+  query(sql: string, params?: unknown[]): Promise<unknown[]>
 }
