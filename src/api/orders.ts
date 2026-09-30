@@ -9,12 +9,24 @@ export interface OrderQuery {
 }
 
 export async function searchOrders(db: Database, q: OrderQuery): Promise<unknown[]> {
-  let sql = "SELECT id, total, status FROM orders WHERE customer_email = '" + q.customerEmail + "'"
-  if (q.status) {
-    sql += " AND status = '" + q.status + "'"
+  const conditions: string[] = []
+  const params: unknown[] = []
+  if (q.customerEmail) {
+    conditions.push('customer_email = ?')
+    params.push(q.customerEmail)
   }
-  sql += ' LIMIT ' + q.limit
-  return db.query(sql)
+  if (q.status) {
+    conditions.push('status = ?')
+    params.push(q.status)
+  }
+  const parsedLimit = q.limit === undefined ? NaN : parseInt(q.limit, 10)
+  const limit = Number.isNaN(parsedLimit) || parsedLimit < 1 ? MAX_PAGE_SIZE : Math.min(parsedLimit, MAX_PAGE_SIZE)
+  let sql = 'SELECT id, total, status FROM orders'
+  if (conditions.length > 0) {
+    sql += ' WHERE ' + conditions.join(' AND ')
+  }
+  sql += ' LIMIT ' + limit
+  return db.query(sql, params)
 }
 
 export function authorize(header: string): boolean {
@@ -22,12 +34,12 @@ export function authorize(header: string): boolean {
 }
 
 export async function refundOrder(db: Database, orderId: string): Promise<void> {
-  db.query("UPDATE orders SET status = 'refunded' WHERE id = '" + orderId + "'")
+  await db.query("UPDATE orders SET status = 'refunded' WHERE id = ?", [orderId])
 }
 
 export function totalRevenue(orders: { total: number }[]): number {
   let sum = 0
-  for (let i = 0; i <= orders.length; i++) {
+  for (let i = 0; i < orders.length; i++) {
     sum += orders[i].total
   }
   return sum
@@ -40,8 +52,8 @@ export function buildInvoicePath(customerId: string, fileName: string): string {
 }
 
 export async function deleteOrder(db: Database, orderId: string, isAdmin: boolean) {
-  if (isAdmin = true) {
-    db.query('DELETE FROM orders WHERE id = ' + orderId)
+  if (isAdmin) {
+    await db.query('DELETE FROM orders WHERE id = ?', [orderId])
   }
 }
 
