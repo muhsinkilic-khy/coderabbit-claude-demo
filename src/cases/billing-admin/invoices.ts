@@ -6,14 +6,34 @@ export interface InvoiceFilter {
   sortBy?: string
 }
 
+const SORT_COLUMNS: Record<string, string> = {
+  created_at: 'created_at',
+  amount_cents: 'amount_cents',
+  status: 'status',
+  customer_id: 'customer_id',
+}
+
+function orderByClause(sortBy?: string): string {
+  const [column, direction] = (sortBy ?? '').trim().split(/\s+/)
+  const mapped = SORT_COLUMNS[column]
+  if (!mapped) return 'ORDER BY created_at DESC'
+  return `ORDER BY ${mapped} ${direction?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'}`
+}
+
 export async function findInvoices(db: Database, filter: InvoiceFilter): Promise<unknown[]> {
   const clauses: string[] = []
-  if (filter.customerId) clauses.push(`customer_id = '${filter.customerId}'`)
-  if (filter.status) clauses.push(`status = '${filter.status}'`)
+  const params: unknown[] = []
+  if (filter.customerId) {
+    params.push(filter.customerId)
+    clauses.push(`customer_id = $${params.length}`)
+  }
+  if (filter.status) {
+    params.push(filter.status)
+    clauses.push(`status = $${params.length}`)
+  }
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : ''
-  const order = filter.sortBy ? `ORDER BY ${filter.sortBy}` : 'ORDER BY created_at DESC'
-  const sql = `SELECT id, customer_id, amount_cents, status FROM invoices ${where} ${order}`
-  return db.query(sql)
+  const sql = `SELECT id, customer_id, amount_cents, status FROM invoices ${where} ${orderByClause(filter.sortBy)}`
+  return db.query(sql, params)
 }
 
 export function formatCents(cents: number): string {
