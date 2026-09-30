@@ -7,14 +7,18 @@ export interface ActivityEvent {
 
 const activityHistory: ActivityEvent[] = []
 
+function cloneEvent(event: ActivityEvent): ActivityEvent {
+  return { ...event }
+}
+
 export function recordEvents(newEvents: ActivityEvent[]): ActivityEvent[] {
   for (const event of newEvents) {
     const alreadySeen = activityHistory.some((existing) => existing.id === event.id)
     if (!alreadySeen) {
-      activityHistory.push(event)
+      activityHistory.push(cloneEvent(event))
     }
   }
-  return activityHistory
+  return activityHistory.map(cloneEvent)
 }
 
 export function recentActivityForUser(userId: string, limit: number): ActivityEvent[] {
@@ -22,7 +26,9 @@ export function recentActivityForUser(userId: string, limit: number): ActivityEv
   for (const event of activityHistory) {
     if (event.userId === userId) matches.push(event)
   }
-  return matches.slice(-limit)
+  const normalizedLimit = Math.floor(limit)
+  if (!(normalizedLimit > 0)) return []
+  return matches.slice(-normalizedLimit).map(cloneEvent)
 }
 
 export function activityHistorySize(): number {
